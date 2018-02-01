@@ -19,3 +19,8 @@ Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_do
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
 be found at [https://hexdocs.pm/server_wide_clock](https://hexdocs.pm/server_wide_clock).
 
+
+# Reading material
+[Server wide clocks paper](http://haslab.uminho.pt/tome/files/global_logical_clocks.pdf)
+
+[DottedDB paper](http://haslab.uminho.pt/tome/files/dotteddb_srds.pdf)
