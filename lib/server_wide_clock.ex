@@ -2,16 +2,10 @@ defmodule ServerWideClock do
   @moduledoc """
   Documentation for ServerWideClock.
   """
+  @type id              :: term()
+  @type counter         :: non_neg_integer()
+  @type entry           :: {counter(), counter()}
 
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> ServerWideClock.hello
-      :world
-
-  """
   def hello do
     :world
   end
