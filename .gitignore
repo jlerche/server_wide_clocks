@@ -23,5 +23,5 @@ erl_crash.dump
 server_wide_clock-*.tar
 
 .idea
-server_wide_clock.iml
+server_wide_clocks.iml
 
