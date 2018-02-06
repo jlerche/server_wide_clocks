@@ -4,6 +4,8 @@ defmodule ServerWideClock.NodeClock do
   Uses Erlang orddict, ordered dictionary, under the hood.
   """
 
+  require Bitwise
+
   @type bvv :: [{key :: ServerWideClock.id(), entry :: ServerWideClock.entry()}]
 
   @doc """
@@ -114,13 +116,13 @@ defmodule ServerWideClock.NodeClock do
   end
 
   def merge(bvv1, bvv2) do
-    func_merge = fn(_id, entry1, entry2) -> nil end
+    func_merge = fn(_id, entry1, entry2) -> join_aux(entry1, entry2) end
     norm_bvv(:orddict.merge(func_merge, bvv1, bvv2))
   end
 
   def join(bvv1, bvv2) do
     keys = :orddict.fetch_keys(bvv1)
-    func_filter = fn(id, entry) -> Enum.member?(keys, id) end
+    func_filter = fn(id, _entry) -> Enum.member?(keys, id) end
     bvv2 = :orddict.filter(func_filter, bvv2)
     func_merge = fn(_id, entry1, entry2) -> join_aux(entry1, entry2) end
     norm_bvv(:orddict.merge(func_merge, bvv1, bvv2))
@@ -128,7 +130,7 @@ defmodule ServerWideClock.NodeClock do
 
   def base(bvv) do
     bvv = norm_bvv(bvv)
-    func = fn(_id, {base, bitmap}) -> {base, 0} end
+    func = fn(_id, {base, _bitmap}) -> {base, 0} end
     :orddict.map(func, bvv)
   end
 
