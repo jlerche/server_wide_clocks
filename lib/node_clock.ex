@@ -67,8 +67,102 @@ defmodule ServerWideClock.NodeClock do
     end
   end
 
+  @spec missing_dots(bvv, bvv, [ServerWideClock.id]) :: [{ServerWideClock.id, [ServerWideClock.counter]}]
   def missing_dots(bvv1, bvv2, id_list) do
-    {}
+    func = fn(key, val, acc) ->
+      with true <- Enum.member?(id_list, key),
+           {:ok, val2} <- :orddict.find(key, bvv2),
+           [] <- subtract_dots(val, val2)
+      do
+        acc
+      else
+        false -> acc
+        :error ->
+          [{key, values(val)} | acc]
+        val_diff when is_list(val_diff) ->
+          [{key, val_diff} | acc]
+      end
+    end
+    :orddict.fold(func, [], bvv1)
   end
 
+  defp subtract_dots({base1, bitmap1}, {base2, bitmap2}) when base1 > base2 do
+    dots1 = Enum.to_list(base2+1..base1) ++ values(base1, bitmap1, [])
+    dots2 = values(base2, bitmap2, [])
+    :ordsets.subtract(dots1, dots2)
+  end
+
+  defp subtract_dots({base1, bitmap1}, {base2, bitmap2}) when base1 <= base2 do
+    dots1 = values(base1, bitmap1, [])
+    dots2 = Enum.to_list(base1+1..base2) ++ values(base2, bitmap2, [])
+    :ordsets.subtract(dots1, dots2)
+  end
+
+  def add(bvv, {id, counter}) do
+    initial = add_aux({0, 0}, counter)
+    func = fn(entry) -> add_aux(entry, counter) end
+    :orddict.update(id, func, initial, bvv)
+  end
+
+  defp add_aux({base, bitmap}, m_base) do
+    case base < m_base do
+      false -> norm({base, bitmap})
+      true ->
+        m = Bitwise.bor(base, Bitwise.bsl(1, (m_base - base - 1)))
+        norm({base, m})
+    end
+  end
+
+  def merge(bvv1, bvv2) do
+    func_merge = fn(_id, entry1, entry2) -> nil end
+    norm_bvv(:orddict.merge(func_merge, bvv1, bvv2))
+  end
+
+  def join(bvv1, bvv2) do
+    keys = :orddict.fetch_keys(bvv1)
+    func_filter = fn(id, entry) -> Enum.member?(keys, id) end
+    bvv2 = :orddict.filter(func_filter, bvv2)
+    func_merge = fn(_id, entry1, entry2) -> join_aux(entry1, entry2) end
+    norm_bvv(:orddict.merge(func_merge, bvv1, bvv2))
+  end
+
+  def base(bvv) do
+    bvv = norm_bvv(bvv)
+    func = fn(_id, {base, bitmap}) -> {base, 0} end
+    :orddict.map(func, bvv)
+  end
+
+  def event(bvv, id) do
+    counter = case :orddict.find(id, bvv) do
+      {:ok, {base, 0}} -> base + 1
+      :error -> 1
+    end
+    {counter, add(bvv, {id, counter})}
+  end
+
+  def store_entry(_id, {0, 0}, bvv) do
+    bvv
+  end
+
+  def store_entry(id, entry={base, 0}, bvv) do
+    case :orddict.find(id, bvv) do
+      {:ok, {base2, _}} when base2 >= base -> bvv
+      {:ok, {base2, _}} when base2 < base -> :orddict.store(id, entry, bvv)
+      :error -> :orddict.store(id, entry, bvv)
+    end
+  end
+
+  defp norm_bvv(bvv) do
+    func_map = fn(_id, entry) -> norm(entry) end
+    bvv = :orddict.map(func_map, bvv)
+    func_filter = fn(_id, entry) -> entry != {0, 0} end
+    :orddict.filter(func_filter, bvv)
+  end
+
+  defp join_aux({base1, bitmap1}, {base2, bitmap2}) do
+    case base1 >= base2 do
+      true -> {base1, Bitwise.bor(bitmap1, Bitwise.bsr(bitmap2, bitmap1 - bitmap2))}
+      false -> {base2, Bitwise.bor(base2, Bitwise.bsr(bitmap1, base2 - base1))}
+    end
+  end
 end
