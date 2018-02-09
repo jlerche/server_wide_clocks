@@ -3,6 +3,7 @@ defmodule ServerWideClock.NodeClock do
   Elixir implementation of the node clock, which is a Bitmapped Version Vector.
   Uses Erlang orddict, ordered dictionary, under the hood.
   """
+  @compile if Mix.env == :test, do: :export_all
 
   require Bitwise
 
@@ -53,7 +54,7 @@ defmodule ServerWideClock.NodeClock do
   """
   @spec values(ServerWideClock.entry) :: [ServerWideClock.counter]
   def values({base, bitmap}) do
-    Enum.to_list(1..base) ++ values(base, bitmap, [])
+    :lists.seq(1, base) ++ values(base, bitmap, [])
   end
 
   @spec values(ServerWideClock.counter, ServerWideClock.counter, [ServerWideClock.counter]) :: [ServerWideClock.counter]
