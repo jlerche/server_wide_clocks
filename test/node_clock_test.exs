@@ -94,5 +94,73 @@ defmodule NodeClockTest do
   test "merge" do
     assert NodeClock.merge([{"a", {5, 3}}], [{"a", {2, 4}}]) == [{"a", {7, 0}}]
     assert NodeClock.merge([{"a", {5, 3}}], [{"b", {2, 4}}]) == [{"a", {7, 0}}, {"b", {2, 4}}]
+
+    assert NodeClock.merge([{"a", {5, 3}}, {"c", {1, 2}}], [{"b", {2, 4}}, {"d", {5, 3}}]) == [
+             {"a", {7, 0}},
+             {"b", {2, 4}},
+             {"c", {1, 2}},
+             {"d", {7, 0}}
+           ]
+
+    assert NodeClock.merge([{"a", {5, 3}}, {"c", {1, 2}}], [{"b", {2, 4}}, {"c", {5, 3}}]) == [
+             {"a", {7, 0}},
+             {"b", {2, 4}},
+             {"c", {7, 0}}
+           ]
+  end
+
+  test "join" do
+    bvv = [{"a", {5, 3}}]
+    assert NodeClock.join(bvv, [{"a", {2, 4}}]) == [{"a", {7, 0}}]
+    assert NodeClock.join(bvv, [{"b", {2, 4}}]) == [{"a", {7, 0}}]
+
+    assert NodeClock.join(bvv ++ [{"c", {1, 2}}], [{"b", {2, 4}}, {"d", {5, 3}}]) == [
+             {"a", {7, 0}},
+             {"c", {1, 2}}
+           ]
+
+    assert NodeClock.join(bvv ++ [{"c", {1, 2}}], [{"b", {2, 4}}, {"c", {5, 3}}]) == [
+             {"a", {7, 0}},
+             {"c", {7, 0}}
+           ]
+  end
+
+  test "join aux" do
+    assert NodeClock.join_aux({5, 3}, {2, 4}) == NodeClock.join_aux({2, 4}, {5, 3})
+    assert NodeClock.join_aux({5, 3}, {2, 4}) == {5, 3}
+    assert NodeClock.join_aux({2, 2}, {3, 0}) == {3, 1}
+    assert NodeClock.join_aux({2, 2}, {3, 1}) == {3, 1}
+    assert NodeClock.join_aux({2, 2}, {3, 2}) == {3, 3}
+    assert NodeClock.join_aux({2, 2}, {3, 4}) == {3, 5}
+    assert NodeClock.join_aux({3, 2}, {1, 4}) == {3, 3}
+    assert NodeClock.join_aux({3, 2}, {1, 16}) == {3, 6}
+  end
+
+  test "base" do
+    assert NodeClock.base([{"a", {5, 3}}]) == [{"a", {7, 0}}]
+    assert NodeClock.base([{"a", {5, 2}}]) == [{"a", {5, 0}}]
+
+    assert NodeClock.base([{"a", {5, 3}}, {"b", {2, 4}}, {"c", {1, 2}}, {"d", {5, 2}}]) == [
+             {"a", {7, 0}},
+             {"b", {2, 0}},
+             {"c", {1, 0}},
+             {"d", {5, 0}}
+           ]
+  end
+
+  test "event" do
+    assert NodeClock.event([{"a", {7, 0}}], "a") == {8, [{"a", {8, 0}}]}
+    assert NodeClock.event([{"a", {5, 3}}], "b") == {1, [{"a", {5, 3}}, {"b", {1, 0}}]}
+
+    assert NodeClock.event([{"a", {5, 3}}, {"b", {2, 0}}, {"c", {1, 2}}, {"d", {5, 3}}], "b") ==
+             {3, [{"a", {5, 3}}, {"b", {3, 0}}, {"c", {1, 2}}, {"d", {5, 3}}]}
+  end
+
+  test "store entry" do
+    assert NodeClock.store_entry("a", {0, 0}, [{"a", {7, 0}}]) == [{"a", {7, 0}}]
+    assert NodeClock.store_entry("b", {0, 0}, [{"a", {7, 0}}]) == [{"a", {7, 0}}]
+    assert NodeClock.store_entry("a", {9, 0}, [{"a", {7, 0}}]) == [{"a", {9, 0}}]
+    assert NodeClock.store_entry("a", {90, 0}, [{"a", {7, 1234}}]) == [{"a", {90, 0}}]
+    assert NodeClock.store_entry("b", {9, 0}, [{"a", {7, 0}}]) == [{"a", {7, 0}}, {"b", {9, 0}}]
   end
 end

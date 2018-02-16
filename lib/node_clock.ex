@@ -169,7 +169,7 @@ defmodule ServerWideClock.NodeClock do
   defp join_aux({base1, bitmap1}, {base2, bitmap2}) do
     case base1 >= base2 do
       true -> {base1, Bitwise.bor(bitmap1, Bitwise.bsr(bitmap2, base1 - base2))}
-      false -> {base2, Bitwise.bor(base2, Bitwise.bsr(bitmap1, base2 - base1))}
+      false -> {base2, Bitwise.bor(bitmap2, Bitwise.bsr(bitmap1, base2 - base1))}
     end
   end
 end
