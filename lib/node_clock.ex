@@ -113,7 +113,7 @@ defmodule ServerWideClock.NodeClock do
         norm({base, bitmap})
 
       true ->
-        m = Bitwise.bor(base, Bitwise.bsl(1, m_base - base - 1))
+        m = Bitwise.bor(bitmap, Bitwise.bsl(1, m_base - base - 1))
         norm({base, m})
     end
   end
