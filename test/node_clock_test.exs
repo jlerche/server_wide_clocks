@@ -90,4 +90,9 @@ defmodule NodeClockTest do
     assert NodeClock.add_aux({2, 5}, 6) == {3, 6}
     assert NodeClock.add_aux({2, 4}, 6) == {2, 12}
   end
+
+  test "merge" do
+    assert NodeClock.merge([{"a", {5, 3}}], [{"a", {2, 4}}]) == [{"a", {7, 0}}]
+    assert NodeClock.merge([{"a", {5, 3}}], [{"b", {2, 4}}]) == [{"a", {7, 0}}, {"b", {2, 4}}]
+  end
 end
