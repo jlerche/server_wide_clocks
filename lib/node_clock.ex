@@ -43,7 +43,7 @@ defmodule ServerWideClock.NodeClock do
   def norm({base, bitmap}) do
     case rem(bitmap, 2) do
       0 -> {base, bitmap}
-      1 -> norm({base + 1, :erlang.bsr(bitmap, 1)})
+      1 -> norm({base + 1, Bitwise.bsr(bitmap, 1)})
     end
   end
 
@@ -65,8 +65,8 @@ defmodule ServerWideClock.NodeClock do
     increm_base = base + 1
 
     case rem(bitmap, 2) do
-      0 -> values(increm_base, :erlang.bsr(bitmap, 1), acc)
-      1 -> values(increm_base, :erlang.bsr(bitmap, 1), [increm_base | acc])
+      0 -> values(increm_base, Bitwise.bsr(bitmap, 1), acc)
+      1 -> values(increm_base, Bitwise.bsr(bitmap, 1), [increm_base | acc])
     end
   end
 
