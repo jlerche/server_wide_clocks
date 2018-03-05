@@ -50,7 +50,7 @@ defmodule ServerWideClock.VersionVector do
   """
   def left_join(vv1, vv2) do
     ids_1 = :orddict.fetch_keys(vv1)
-    func_filter = fn id, _ -> Enum.member?(id, ids_1) end
+    func_filter = fn id, _ -> Enum.member?(ids_1, id) end
     vv2_filter = :orddict.filter(func_filter, vv2)
     join(vv1, vv2_filter)
   end
