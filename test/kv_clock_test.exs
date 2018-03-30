@@ -38,4 +38,28 @@ defmodule KVClockTest do
   test "add" do
     assert KVC.add([{"a", {5, 3}}], d1()) == [{"a", {8, 0}}, {"b", {0, 2}}]
   end
+
+  test "discard" do
+    assert KVC.discard(d3(), []) == d3()
+
+    assert KVC.discard(d3(), [{"a", 2}, {"b", 15}, {"c", 15}]) ==
+             {[{{"a", 3}, "red"}], [{"a", 4}, {"b", 15}, {"c", 15}]}
+
+    assert KVC.discard(d3(), [{"a", 3}, {"b", 15}, {"c", 15}]) ==
+             {[], [{"a", 4}, {"b", 15}, {"c", 15}]}
+  end
+
+  test "strip" do
+    target = {[{{"a", 5}, "gray"}], [{"b", 5}, {"c", 4}]}
+    assert KVC.strip(d5(), [{"a", {4, 4}}]) == d5()
+    assert KVC.strip(d5(), [{"a", {5, 0}}]) == target
+    assert KVC.strip(d5(), [{"a", {15, 0}}]) == target
+    assert KVC.strip(d5(), [{"a", {15, 4}}, {"b", {1, 2}}]) == target
+
+    assert KVC.strip(d5(), [{"b", {15, 4}}, {"c", {1, 2}}]) ==
+             {[{{"a", 5}, "gray"}], [{"a", 5}, {"c", 4}]}
+
+    assert KVC.strip(d5(), [{"a", {15, 4}}, {"b", {15, 4}}, {"c", {5, 2}}]) ==
+             {[{{"a", 5}, "gray"}], []}
+  end
 end

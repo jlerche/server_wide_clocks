@@ -39,6 +39,15 @@ defmodule ServerWideClock.KVClock do
     {:orddict.filter(func_filter, dots), VV.join(vv, context)}
   end
 
+  def strip({dots, vv}, bvv) do
+    func = fn id, counter ->
+      {base, _dots_node} = NC.get(id, bvv)
+      counter > base
+    end
+
+    {dots, VV.filter(func, vv)}
+  end
+
   def fill({dots, vv}, bvv) do
     func = fn id, acc ->
       {base, _dots_from_bvv} = NC.get(id, bvv)
